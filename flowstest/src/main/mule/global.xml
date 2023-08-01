@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="bfeec874-41dd-4df1-bc80-198214a656a1" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<configuration doc:name="Configuration" doc:id="5e64b3ce-f455-4ffc-bc45-16535fd46d98" defaultErrorHandler-ref="globalError_Handler" />
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="463068d0-aa77-4e38-be86-964be6a4c7a7" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="student_mulesoft" />
+	</db:config>
+	<vm:config name="VM_Config" doc:name="VM Config" doc:id="c75a119b-33ae-45a4-a260-cd473f881076" >
+		<vm:connection />
+		<vm:queues >
+			<vm:queue queueName="payloadName" queueType="PERSISTENT" />
+			<vm:queue queueName="payloadNamePublish" queueType="PERSISTENT" />
+		</vm:queues>
+	</vm:config>
+	<error-handler name="globalError_Handler" doc:id="1deaf27d-2796-4530-94a6-fd4718d763af" >
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="748393c9-921f-4e9e-8faf-3d85443cbcaa" type="ANY">
+			<logger level="INFO" doc:name="Logger" doc:id="a5c54d28-ba19-4fa2-b5a0-7ca17ec8ce2b" message='#["Log"]'/>
+		</on-error-continue>
+	</error-handler>
+</mule>

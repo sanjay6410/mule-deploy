@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	
+	<flow name="flowstestFlowTest" doc:id="aba2c1b0-a554-41eb-b94b-1cb466edb346" >
+		<http:listener doc:name="Http Get /testFlows" doc:id="996b765c-5889-4767-9cc5-b77c5861ca7b" config-ref="HTTP_Listener_config" path="/testFlows/{flowName}" allowedMethods="GET"/>
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;attributes.uriParams.flowName]" doc:name="Set Variable" doc:id="f301070c-9106-410a-856c-d394e2b34e25" variableName="flowName"/>
+		<logger level="INFO" doc:name="Logger for main Flow" doc:id="e55b63a0-b536-4c27-bac3-9fad419619ea" message="#[%dw 2.0&#10;output application/json&#10;---&#10;attributes.queryParams]"/>
+		<logger level="INFO" doc:name="Logger for main" doc:id="46c9f245-24ac-4275-9606-48dbf79e9a9e" message='#[%dw 2.0&#10;&#10;output application/json&#10;---&#10; attributes.queryParams.sa]'/>
+		<flow-ref doc:name="Flow Reference for private flow" doc:id="71b7e29a-b3f8-4c0c-b83b-a97e81fb9d5b" name="privateFlow"/>
+		<flow-ref doc:name="Flow Reference for subFlow" doc:id="a74331c9-7f22-46be-a208-ab71807aa81b" name="flowstestSub_Flow"/>
+	</flow>
+	<flow name="privateFlow" doc:id="f6dae9d4-8335-47eb-bfd5-9ca222d88ccf" >
+		<logger level="INFO" doc:name="Logger for private" doc:id="807ae2af-106b-4219-bb64-08cbf7600fc6" message="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.flowName]"/>
+		<set-variable value='#[vars.flowName ++ " PRIVATE FLOW " as String]' doc:name="Set Variable flowName" doc:id="eb3eba46-9158-441f-ba71-1b892985c9f4" variableName="flowName"/>
+	</flow>
+	<sub-flow name="flowstestSub_Flow" doc:id="2741de69-1944-4b16-9d43-1ab84b91f203" >
+		<logger level="INFO" doc:name="Logger for subflow" doc:id="54306bbd-8aab-48f9-95e2-746cccd81789" message='#[%dw 2.0&#10;output application/json&#10;---&#10;vars.flowName]'/>
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.flowName]" doc:name="Set Payload" doc:id="063f19ae-289c-4b67-a80e-02af5ac93ee4" />
+	</sub-flow>
+	<flow name="flowstestFlow1" doc:id="5aad920c-1db1-442e-b072-7254dd5f8378" >
+		<validation:is-number numberType="INTEGER" doc:name="Is number" doc:id="43fe8e1e-00e9-4b4e-a6b7-030d392f15b8" value="#[attributes.queryParams.id]"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="b3a8c1dd-477b-4a7b-bc71-2823891ef41d" type="VALIDATION:INVALID_NUMBER">
+				<logger level="INFO" doc:name="Logger" doc:id="773180db-6279-4b02-836a-3e42f410e4f9" message='#["LOG"]'/>
+				<set-payload value='#["PrivateFlow"]' doc:name="Set Payload" doc:id="3d80d715-711d-4378-b270-1b7a0d91b703" />
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="ErrorHandlingFlowScopeCheck" doc:id="f3dc3d20-4008-45d8-b6fb-7b5383097fe2" >
+		<http:listener doc:name="TriggerFlow /trigger" doc:id="8a1576b0-f8c1-41ef-a2a5-3e3536312060" config-ref="HTTP_Listener_config" path="/trigger" allowedMethods="GET">
+			<http:response statusCode="#[vars.statusCode]" />
+			<http:error-response statusCode="#[vars.statusCode]">
+				<http:body ><![CDATA[#[payload]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<logger level="INFO" doc:name="Start Flow" doc:id="490942fa-8a9e-431f-994b-a60ee841e305" message="Flow Started"/>
+<flow-ref doc:name="Flow Reference" doc:id="65ff655b-af0b-4632-a05c-a6807bb3046f" name="flowstestFlow1"/>
+<!-- [STUDIO:"Is number"]		<validation:is-number numberType="INTEGER" doc:name="Is number" doc:id="e8d551a1-f24b-4d04-96cf-5c7ff2752dc3" value="#[attributes.queryParams.id&#93;"/> [STUDIO] -->
+				<try doc:name="Try" doc:id="195d112a-1dcf-45a5-9d52-9403348e567c" >
+			<validation:is-number doc:name="notNumberError" doc:id="97c8af52-92e9-4c25-989c-0c26813fb43c" value="#[attributes.queryParams.id]" numberType="INTEGER" />
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e14f68e6-685e-4f07-8741-e2a5ca70fabe" type="VALIDATION:INVALID_NUMBER">
+					<ee:transform doc:name="Transform Message" doc:id="2b185ebd-5634-46c2-832c-a285904d665c" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":"ERROR FROM TRY PROPOGATE",
+	"description":error.description
+}]]></ee:set-payload>
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="statusCode" ><![CDATA[400]]></ee:set-variable>
+						</ee:variables>
+					
+</ee:transform>
+				</on-error-propagate>
+			</error-handler>
+		</try>
+		<set-payload value='#["hi"]' doc:name="Set Payload" doc:id="9e3680f6-2ee6-456d-b8f6-d8f4aabc4e36" />
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="06b19062-d118-45af-a2c9-d7631ea1fe37" type="EXPRESSION">
+				<set-payload value='#["Flow level ErrorHandling"]' doc:name="Set Payload" doc:id="642f72ed-5e5f-432e-a065-8f0d7d61095c" />
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="flowstestFlow" doc:id="484cdf92-63d6-48db-87b1-433662407726" >
+		<http:listener doc:name="Listener" doc:id="24bbb6d4-c684-40bb-96d8-88caa7fe4c53" config-ref="HTTP_Listener_config" path="/chechScopeOfVariable" allowedMethods="GET"/>
+		<set-variable value="sanjay" doc:name="Set Variable" doc:id="83c64207-5aee-4294-9b8c-3394853d6813" variableName="firstName"/>
+		<flow-ref doc:name="Flow Reference" doc:id="fa97d7ed-d807-4a31-bbdc-664fe1ae9a20" name="flowstestFlow2"/>
+		<flow-ref doc:name="Flow Reference" doc:id="54d14ef1-bfe5-4047-9be2-c9b54f2c7d22" name="flowstestSub_Flow1"/>
+		<logger level="INFO" doc:name="Logger" doc:id="2bde4f41-e40e-40d0-a7be-0f2abed6cc6d" message="flow end"/>
+	</flow>
+	<flow name="flowstestFlow2" doc:id="8453de08-dede-4def-ac49-5fadd546a59b" >
+		<logger level="INFO" doc:name="SubFlow" doc:id="127a931b-7f73-43ca-bbfb-125b54417b8e" message="Hi From Sub Flow"/>
+		<set-variable value="SUBsanjay" doc:name="Set Variable" doc:id="a78e2d94-13bf-4af7-982b-1f6387c0ecbf" variableName="firstName"/>
+	</flow>
+	<sub-flow name="flowstestSub_Flow1" doc:id="435137ce-989b-4928-811f-4fcfd24cbcec" >
+		<logger level="INFO" doc:name="Private Flow" doc:id="9497a862-d4bf-4558-b2d6-7b0a03e5b8fe" message="Hi From Private Flow"/>
+		<set-variable value="PRIVATEsanjay" doc:name="Set Variable" doc:id="d0dc18c3-d486-4dd6-9689-62341bb6f625" variableName="firstName"/>
+	</sub-flow>
+	<flow name="TriggerContinue" doc:id="8cdb0be1-24aa-4fee-9316-c459c7047bf3" >
+		<http:listener doc:name="TriggerContinue /trigger-continue" doc:id="152a20d5-2602-47a4-a8a9-bfc002324a13" config-ref="HTTP_Listener_config" path="/trigger-continue" allowedMethods="GET"/>
+		<logger level="INFO" doc:name="Flow Start" doc:id="c9950be1-aacc-4275-88b4-e6f926261413" message='#["Flow Start " ++ flow.name as String]'/>
+		<validation:is-number numberType="INTEGER" doc:name="Is number" doc:id="cf0e7ccf-03de-41d5-9510-835c7071ac43" value="#[attributes.queryParams.id]"/>
+		<set-payload value='#["PAYLOAD AFTER ERROR HANDLING CONTINUE"]' doc:name="Set Payload" doc:id="aabdf3dd-e9cc-424e-9e38-a5d4d5f8fdbc" />
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="4187489d-5a81-427b-b97e-08940b8d9614" type="VALIDATION:INVALID_NUMBER">
+				<ee:transform doc:name="Transform Message" doc:id="3eef912e-9e65-4451-b375-6765abbe0c2b" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":"Error from flow error handling CONTINUE",
+	"description":error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="triggerScatterGather" doc:id="39782a98-3710-460c-bbe3-7e88715fc1a7" >
+		<http:listener doc:name="triggerScatterGather /trigger-sg" doc:id="f93fb1a4-8d11-4ef8-8bf4-5220daac4e0f" config-ref="HTTP_Listener_config" path="/trigger-sg" allowedMethods="GET"/>
+		<logger level="INFO" doc:name="Flow start" doc:id="42f0c0e0-ae7a-47f2-ab8a-5ee6919733d3" message='#["flow started " ++ flow.name as String]'/>
+		<logger level="INFO" doc:name="Headers" doc:id="d1f17403-af69-4dc2-aa70-5ae3fe6dfc13" message="#[attributes.headers.'Content-Type']"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="3979222c-2d5b-4d45-b89c-3dd226edfdd9" >
+			<route >
+				<db:select doc:name="Employee Table Data" doc:id="1cbb82c3-a8b0-40c6-8d7d-1439e8b5b8c5" config-ref="Database_Config">
+					<db:sql ><![CDATA[select * from employee]]></db:sql>
+				</db:select>
+				<logger level="INFO" doc:name="Data Of EmployeeTable" doc:id="4c6e6673-8315-487b-8c2e-fb52d156c003" message="#[payload]"/>
+			</route>
+			<route >
+				<db:select doc:name="employee_status Table Data" doc:id="188f3897-e068-419c-afaf-bb18d3cb3fe8" config-ref="Database_Config">
+					<db:sql ><![CDATA[select * from employee_status]]></db:sql>
+				</db:select>
+				<logger level="INFO" doc:name="Data Of EmployeeStatusTable" doc:id="fac5ba96-0607-4b0c-b0b8-faf297a76554" message="#[payload]"/>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="746eec5d-ad55-4a62-a26c-643861207a3c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload
+//flatten(valuesOf(payload) map{
+//	"Index":$$,
+//	"Object":$.payload map{
+//		"Index":$$,
+//		"Employee":$
+//	}
+//})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Flow End" doc:id="78dce22e-a220-4f25-9c53-8a58d92b10e8" message='#["Flow End " ++ flow.name as String]'/>
+	</flow>
+	<flow name="TriggerBatchProcessing" doc:id="ea870b51-07c3-45c6-a85d-0b3f0a9cba20" >
+		<http:listener doc:name="TriggerBatchProcessing /trigger-bp" doc:id="47f43fb5-8c7c-414b-aae2-a62017ab0ce3" config-ref="HTTP_Listener_config" path="/trigger-bp" allowedMethods="GET"/>
+		<logger level="INFO" doc:name="Flow Start" doc:id="52160bc1-7567-461c-ac45-c7aeff6fe63e" message='#["Flow Started " ++ flow.name as String]'/>
+		<db:select doc:name="Employee data DB" doc:id="a54a3f6e-d23e-4093-bbeb-6236c2783bc6" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from employee]]></db:sql>
+		</db:select>
+		<batch:job jobName="BatchJobEmployeeDetailsDB" doc:id="0fa8c210-b5e7-418c-af3d-8c5b596616f7" blockSize="1">
+			<batch:process-records >
+				<batch:step name="Batch_StepEmployeeDetails" doc:id="c14dd2b0-e78a-4d92-bc1f-6fa0e9749b1b" >
+					<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;//payload.name ++ "HIIII" as String default "sanjay"&#10;&#10;payload ++ {"name":"sanjay"}]' doc:name="Set Payload" doc:id="6d51c507-12f4-4e8b-b393-1a9a1e509ea4" />
+					<ee:transform doc:name="Payload" doc:id="bdbf71cb-661e-46e6-88f1-2edc4c684441" >
+						<ee:message >
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="PayloadAfterEmployeeUpdate" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="d0069afd-caad-42f3-b650-b21862103a8f" size="2">
+						<logger level="INFO" doc:name="Aggregator" doc:id="9828170c-c4cd-431c-9191-2561c2ef3d9d" message="#[payload]"/>
+					</batch:aggregator>
+				</batch:step>
+				<batch:step name="Batch_Step2EmployeeDetails" doc:id="c3f42dd0-c336-4392-83e5-c1bd5cf53133">
+					<logger level="INFO" doc:name="ExpressionIsTrue" doc:id="39a9bec5-b5d6-41b5-866d-d66ebc5a8771" message="#[payload]"/>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="OnCompleteBatchJobPayload" doc:id="ccdd42b7-932b-49df-a859-f10a695630ba" message="#[vars.NameOfEmployeeUpdated]"/>
+			</batch:on-complete>
+		</batch:job>
+		<ee:transform doc:name="PayloadResponse" doc:id="2d929aa5-9ba0-40de-9f77-0e09d0718dc7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":"successBatchProcessing",
+	"name": vars.NameOfEmployeeUpdated
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Flow End" doc:id="4b5ac473-560a-47aa-b2f6-dd29dc04d48a" message='#["Flow End " ++ flow.name as String]'/>
+	</flow>
+	<flow name="TriggerFlowForEach" doc:id="f4dbe4f5-b415-4543-8136-4f1e421bb17b" >
+		<http:listener doc:name="TriggerFlowForEach /trigger-fe" doc:id="0d75507b-7948-462a-b741-b8281b592266" config-ref="HTTP_Listener_config" path="/trigger-fe" allowedMethods="GET"/>
+		<logger level="INFO" doc:name="Flow Start" doc:id="d4cf709e-b3ec-473c-b022-a304e021c448" message='#["Flow Started " ++ flow.name as String]'/>
+		<db:select doc:name="Employee data DB" doc:id="ba91552c-ea8e-438e-822b-b8acabc62aae" config-ref="Database_Config" >
+			<db:sql ><![CDATA[select * from employee]]></db:sql>
+		</db:select>
+		<foreach doc:name="For Each Employee Details" doc:id="01eab8ba-a9a5-4a2a-89aa-7e67f0f262bf" batchSize="2">
+			<set-variable value='#[payload.name]' doc:name="Set Variable" doc:id="c1f91206-1818-4b3a-ac01-1a792a205c43" variableName="ForEachEmployeeName"/>
+			<ee:transform doc:name="PreparePayload" doc:id="d2678c04-12b4-4ac7-aa89-a43a80f3350d" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"EmployeeName": payload.name,
+	"EmployeeDesignation":payload.designation
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<logger level="INFO" doc:name="Payload Log" doc:id="cc79d717-da3b-4e9c-ada7-7e2cfeef7a31" message="#[payload]"/>
+		</foreach>
+		<ee:transform doc:name="Payload Response" doc:id="b07d8c1e-abee-4d5d-81e1-6f73537accc6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":"SuccessFullyProcessed ",
+	"name": payload.name
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Flow End" doc:id="cbf26699-d9cc-474a-baed-718426325809" message='#["Flow Ended " ++ flow.name as String]'/>
+	</flow>
+	<flow name="TriggerOnTableRow" doc:id="af598419-7a9a-431c-ae21-6811ac54ad1a" >
+		<db:listener doc:name="On Table Row EmployeeTable" doc:id="ca4f6b60-6d33-4216-9e6d-310438214ff2" config-ref="Database_Config" table="employee" watermarkColumn="id" idColumn="id">
+			<scheduling-strategy >
+				<fixed-frequency frequency="10" timeUnit="SECONDS"/>
+			</scheduling-strategy>
+		</db:listener>
+		<logger level="INFO" doc:name="Log Start" doc:id="7f448e2d-b9a9-486e-bff9-56b642698561" message='#["Flow Started  " ++ flow.name as String]' />
+		<ee:transform doc:name="PrepareResponse" doc:id="a5eddc8a-ab21-41ec-8af6-d601f9e0827b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"EmployeeName":payload.name,
+	"EmployeeDesignation":payload.designation,
+	"EmployeeAddress": payload.address
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference for http listener" doc:id="7ad65be3-9d72-480e-bd01-0a00d4276da7" name="TriggerOnTableRowFlowRef"/>
+		<logger level="INFO" doc:name="Flow End" doc:id="fb4bd63f-d00f-40e5-80bf-f6ddc10b2680" message='#["Flow Ended " ++ flow.name as String]'/>
+	</flow>
+	<flow name="TriggerOnTableRowFlowRef" doc:id="fdaf6801-bcf2-4730-a593-269d6e740fca" >
+		<http:listener doc:name="TriggerOnTab" doc:id="86319cd0-3093-43f1-8e45-4305d4a6fe0a" config-ref="HTTP_Listener_config" path="/trigger-OTR" allowedMethods="GET"/>
+		<ee:transform doc:name="Transform Message" doc:id="1f47b86e-5e4d-45eb-9da4-7f7c915c15bc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="PublishConsumeVSPublish" doc:id="cc279aa1-ae9e-456c-b05d-5bd0c95fc100" >
+		<http:listener doc:name="PublishConsumeVSPublish /pcvsp" doc:id="14ee6b3f-4f48-4ca1-aebf-9df81615d059" config-ref="HTTP_Listener_config" path="/pcvsp" allowedMethods="GET"/>
+		<logger level="INFO" doc:name="Flow Start" doc:id="9efe3ff3-5448-4a58-83ad-eb88fcb8a126" message='#["Flow Started " ++ flow.name as String]'/>
+		<vm:publish-consume doc:name="Publish consume" doc:id="24b25490-476e-42af-9929-76a1140aa358" config-ref="VM_Config" queueName="payloadName" timeoutUnit="MINUTES">
+			<vm:content ><![CDATA[#[payload.name]]]></vm:content>
+		</vm:publish-consume>
+		<vm:publish queueName="payloadNamePublish" doc:name="Publish" doc:id="4c45ef6c-eb09-4c32-b9e3-b6af9bf0c4f1" config-ref="VM_Config" timeoutUnit="MINUTES"/>
+<ee:transform doc:name="Transform Message" doc:id="77132b83-b212-4a7c-9a35-a927946085ae" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+lookup("PublishFlow",payload,200000)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<!-- [STUDIO:"Flow Reference For PublishListener"]		<flow-ref doc:name="Flow Reference For PublishListener" doc:id="01a53a10-e272-4b75-abdf-478abcd12147" name="PublishFlow"/> [STUDIO] -->
+		<ee:transform doc:name="preparePayload" doc:id="62ad8c57-4d8c-4640-86a5-23bec6d5e9b7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Flow End" doc:id="deeb3137-f078-425b-bded-8ea30926f351" message='#["FlowEnd " ++ flow.name as String]'/>
+	
+</flow>
+	<flow name="PublishConsumeListenerFlow" doc:id="effdcb6b-530c-4f22-b679-7e407712a7c0" >
+		<vm:listener queueName="payloadName" doc:name="Listener" doc:id="abb8ce22-b6f3-407f-83df-c05839bf6f89" config-ref="VM_Config">
+		</vm:listener>
+		<logger level="INFO" doc:name="Flow Start " doc:id="e18c04ea-3247-465a-9578-e838e6f870f0" message='#["Flow Started " ++ flow.name as String]'/>
+		<ee:transform doc:name="Prepare Payload ForPS" doc:id="be74f861-dfef-4b74-952b-8d736b468952" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload ++ "Guptha " as String]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Flow End" doc:id="3f9ea224-3348-4d78-8809-ae319f0bd61c" message='#["Flow End " ++ flow.name as String]'/>
+	</flow>
+	<flow name="PublishFlow" doc:id="837408f1-b0b8-4231-9b5d-fce3da6c80bc" >
+		<vm:listener doc:name="Listener" doc:id="ac39982e-56ca-4501-acf7-3460616baeff" config-ref="VM_Config" queueName="payloadNamePublish" timeoutUnit="MINUTES"/>
+		<logger level="INFO" doc:name="Flow Start " doc:id="631df64c-6534-4e1a-8b97-ce9144e7ccae" message='#["Flow Started " ++ flow.name as String]' />
+		<ee:transform doc:name="Prepare Payload ForPS" doc:id="2ff72205-6832-4a90-b83c-1d5b7577db0a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload ++ "Publish " as String]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Flow End" doc:id="8c612964-3f65-4f17-9eb7-8354dce844a1" message='#["Flow End " ++ flow.name as String]' />
+	</flow>
+	<flow name="ReadXMLPayload" doc:id="a7e29fd8-f605-44d8-8a3a-00ec7b86a07d" >
+		<http:listener doc:name="ReadXMLPayload /read-xml" doc:id="780d1c6e-1cb0-44f0-ae44-9063052f7581" config-ref="HTTP_Listener_config" path="/read-xml" allowedMethods="GET"/>
+		<logger level="INFO" doc:name="Flow Start" doc:id="b327ef51-59ed-477b-8578-0158f4a470ce" message='#["Flow Start " ++ flow.name as String]'/>
+		<ee:transform doc:name="PrepareJSONResponseFromXMLPayload" doc:id="a04bc20b-a5cd-4ec2-a83f-5f6425473761" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"CaseId":payload.covidCase.caseID,
+	"Address":payload.covidCase.address.streetAddress,
+	"CaseIdName":payload.covidCase.caseID.@name,
+	"Email":payload.covidCase.email,
+	"Source":payload.covidCase.source
+}
+]]></ee:set-payload>
+
+			</ee:message>
+			<ee:variables >
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Flow End" doc:id="f0822341-fe0b-4fa6-8185-4dc1b640250a" message='#["Flow End " ++ flow.name as String]'/>
+	</flow>
+	<flow name="TransformJSONtoXML" doc:id="8242fc30-b7bc-4054-b996-4b551cfdcca5" >
+		<http:listener doc:name="TransformJSONtoXML /transformToXml" doc:id="cc72817d-ff8e-45fe-a0ff-5d432fc1339f" config-ref="HTTP_Listener_config" path="/transformToXml" allowedMethods="GET"/>
+		<logger level="INFO" doc:name="Flow Start" doc:id="43a6e694-299c-4ff5-8e70-66a171a2839f" message='#["Flow Start " ++ flow.name as String]' />
+		<ee:transform doc:name="Transform json to xml" doc:id="4dc18ab6-4c37-4179-9976-46562410f9fc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+	"CASE":{
+		"1":{
+			Source @(caseId:payload.covidCase.caseID,caseType:payload.covidCase.caseType): payload.covidCase.source,
+			FullName : payload.covidCase.firstName ++" " ++ payload.covidCase.lastName,
+			Address: payload.covidCase.address.city,
+			Email @(nationalIDType:payload.covidCase.nationalIDType): payload.covidCase.email,
+			Name: payload.covidCase.caseID.@name
+		}
+		
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="DecimalNumbersToString" doc:id="8c13948d-3038-4b20-8cce-b21d5bd513d3" >
+		<ee:transform doc:name="DecimalNumbersToString" doc:id="a9ea8f15-2c9b-4295-8393-f6c78559e1d6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var num=1
+var name= "sanjay"
+var decimalNum=345.6778
+---
+{
+	"TypeOfAInt":typeOf(num),
+	"TypeOfName":typeOf(name),
+	"TyPEoFdECIMAL":typeOf(decimalNum),
+	"Value":decimalNum as String {format:"0.00",roundMode:"HALF_UP"}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="BatchProcessingTestArray" doc:id="8e34fd15-cda6-4c0a-9d50-eeaf081b641e" >
+		<http:listener doc:name="BatchProcessingTestArray /bp-array" doc:id="f65b6d73-dc24-432d-9a9a-7112a8eac48e" config-ref="HTTP_Listener_config" path="/bp-array" allowedMethods="GET"/>
+		<logger level="INFO" doc:name="Flow Start" doc:id="b878bf6d-6d16-4a65-ab04-595756e6df61" message='#["Flow Start " ++ flow.name as String]'/>
+		<set-payload value="#[[1,2,3,4,5,5,6,6,9]]" doc:name="Array [1,2,3]" doc:id="604309cc-5c70-4a5b-b9f4-f385f81492d2" />
+		<batch:job jobName="flowstestBatch_Job" doc:id="e631fe3c-2fb6-4b24-a33c-53e20c748e10" >
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="e32c0ba8-5701-41ca-9a24-8be2e663df16">
+					<logger level="INFO" doc:name="Batch_Step-1" doc:id="0a31f8c8-3724-44a4-a28e-2a299b81f2de" message="#[payload]"/>
+					<logger level="INFO" doc:name="AttributesMuleMessage" doc:id="3077f501-60dd-4792-a73e-d5f5e4adfc01" message="#[attributes.queryParams.name]"/>
+					<set-variable value="#[payload]" doc:name="Set Variable ArrayPayload " doc:id="0c7be8eb-5df1-43f2-960d-fb068e8b7e0a" variableName="valueOfPayload"/>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="0dfba277-ca39-4994-8f19-9fbb68e4d4ba" size="2">
+						<logger level="INFO" doc:name="Batch_step-1-Aggregator" doc:id="2f20a72f-ae38-4ae6-8cf0-bb2757c1848f" message="#[payload]"/>
+					</batch:aggregator>
+				</batch:step>
+				<batch:step name="Batch_Step1" doc:id="82f16168-c552-4725-9d1b-e19a4b13a407" >
+					<logger level="INFO" doc:name="Batch-step-2" doc:id="e796fffa-d3f5-4411-987e-93d55baeeda7" message="#[payload]"/>
+					<logger level="INFO" doc:name="Logger" doc:id="772cfb58-fce3-4350-a34e-dd684a9d00b5" message="#[vars.valueOfPayload]"/>
+					<set-variable value="#[payload + 10 as Number]" doc:name="Set Variable payload ofstep1" doc:id="e8c38f06-3b8c-4923-ae8f-b4f902c61987" variableName="valueOfPayload"/>
+					<set-payload value="#[vars.valueOfPayload]" doc:name="Set Payload" doc:id="41b18428-ac0b-4a3a-9339-cf54604a7b84" />
+					<logger level="INFO" doc:name="valueOfPayload VarValue" doc:id="89c258d9-8a0d-4bed-af6b-ea41c4439882" message="#[payload]" />
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="OnComplete Payload" doc:id="d0f1f748-46ff-4bd6-ae75-2f960c4ba4ac" message="#[payload]"/>
+			</batch:on-complete>
+		</batch:job>
+		<logger level="INFO" doc:name="AttributesMuleMessage" doc:id="efcf215b-1676-473f-95f6-44da6d06fc23" message="#[attributes.queryParams.name]" />
+		<ee:transform doc:name="Prepare Response" doc:id="99913210-78a1-42c9-889a-aa110038b965" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Flow End" doc:id="c4c6e77b-2d01-473d-a93a-750a0fe662ea" message='#["Flow End " ++ flow.name as String]'/>
+	</flow>
+</mule>
