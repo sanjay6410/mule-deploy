@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="helloFlow" doc:id="b8d4d8fe-63d2-47ce-864a-adc601aa4ad1" >
+		<http:listener doc:name="HelloMessage /helloMessage" doc:id="6982f75f-6a6e-437e-b5aa-3b5178276ac3" config-ref="HTTP_Listener_config" path=" /helloMessage" allowedMethods="GET"/>
+		<logger level="INFO" doc:name="Flow Executed" doc:id="9b714df7-4a0c-46b1-8035-bdc0d033bd05" message='#["Flow Executed " ++ flow.name as String]'/>
+		<ee:transform doc:name="Prepare Payload" doc:id="6bc10965-e8b2-4971-90b7-16dced49a0f5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var json={
+	"name":"sanjay",
+	"email":"sanjay@gmail.com"
+}
+
+var array=[1,2,3,4]
+
+---
+{
+	"message":"Hello From Mule Application  ",
+	"typeOfPayloadJson": typeOf(json),
+	"typeOfPayloadXML":typeOf(payload),
+	"typeOfArray":typeOf(array)
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
