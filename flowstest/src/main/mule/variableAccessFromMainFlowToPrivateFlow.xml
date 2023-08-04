@@ -1,7 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="e53ce72a-7466-441c-8083-d22a84063f50" basePath="/request" >
+		<http:request-connection host="localhost" port="8081" />
+	</http:request-config>
+	<flow name="variableAccessFromMainFlowToPrivateFlowFlow" doc:id="d2a2ac76-8e4d-401b-b94b-c0de97401c32" >
+		<http:listener doc:name="Listener /varAccess" doc:id="e289b986-2d39-4efb-a40e-ac3bff2cbb51" config-ref="HTTP_Listener_config" path=" /varAccess" allowedMethods="GET"/>
+		<logger level="INFO" doc:name="Flow Start" doc:id="dc6381ef-015a-43eb-8a3b-0df1bc683321" message='#["Flow Start " ++ flow.name as String]'/>
+		<set-variable value="#[1]" doc:name="Set Variable" doc:id="5d287324-2139-4c64-902f-9a0bf8288a3a" variableName="number"/>
+		<http:request method="GET" doc:name="Request" doc:id="6423e782-cdc3-4e22-8ec3-c6fe9d62c2a4" config-ref="HTTP_Request_configuration" path="/hi"/>
+		<flow-ref doc:name="Flow Reference PrivateFlow" doc:id="8d0bdee4-bf48-4e8a-a9ca-55f15c8cc639" name="PrivateFlow"/>
+		<flow-ref doc:name="Flow Reference SubFlow" doc:id="f780d32d-f466-403d-b710-34c0e14b2ffa" name="variableAccessFromMainFlowToPrivateFlowSub_Flow"/>
+		<logger level="INFO" doc:name="Variable value" doc:id="c34bb854-8d7f-446f-948e-39d3d085b133" message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	&quot;VarValue&quot;: vars.number,&#10;	&quot;PropertyVaLUE&quot;: p('http.port')&#10;}]"/>
+		<logger level="INFO" doc:name="PrivateFlow Number2" doc:id="5b716049-3eb9-4d12-ae5c-6fb63876769a" message="#[vars.number2]"/>
+		<logger level="INFO" doc:name="Flow End" doc:id="8469874f-2278-46ef-afd4-a04cb9f33e04" message='#["Flow End " ++ flow.name as String]'/>
+	</flow>
+	<flow name="PrivateFlow" doc:id="578e8cb9-b9c8-4e6e-87e4-9a95a7809210" >
+		<logger level="INFO" doc:name="Logger" doc:id="fcc51d04-9fda-4c30-b40a-8b6043074a6b" message="#[vars.number]"/>
+		<set-variable value="#[vars.number +1]" doc:name="Set Variable" doc:id="84bd2ed0-3c22-4e77-b9e0-6001795ae1fd" variableName="number"/>
+		<set-variable value="2" doc:name="Set Variable" doc:id="d7d9356a-00fb-4f40-8c99-c376576ab0d8" variableName="number2"/>
+	</flow>
+<!-- [STUDIO:"ArrayCharsBatchProcessing"]	<flow name="ArrayCharsBatchProcessing" doc:id="891f25a9-67dc-41c9-87ea-ccf668a82133" >
+		<http:listener doc:name="ArrayCharsBatchProcessing /array-chars-bp" doc:id="cd49e990-ee80-439e-ad26-d364ad22d101" config-ref="HTTP_Listener_config" path="/array-chars-bp" allowedMethods="GET"/>
+		<logger level="INFO" doc:name="Flow Start" doc:id="bf4e398b-f35d-4ced-a7e7-bb4f4b9327fc" message='#["Flow Start " ++ flow.name as String&#93;'/>
+		<set-payload value="#[[1,2,3,4&#93;&#93;" doc:name="arrayOfChars ['a','b','c','d'&#93;" doc:id="8f7771e3-9c82-40ce-ab59-18dcac51c3cc" />
+		<set-variable value="#[typeOf(payload)&#93;" doc:name="typeOfArrayChars" doc:id="7f7f28d3-1651-476e-85bf-1c510f255fc7" variableName="typeOfArrayChars"/>
+		<batch:job jobName="Batch_job" doc:id="00119639-e8a4-468b-b716-e244ca4ca95f" >
+			<batch:process-records >
+				<batch:step name="Batch_step" doc:id="be368584-54c6-4759-b278-26acceac3e46">
+					<ee:transform doc:name="CharsToUpperCase" doc:id="7055d0e9-7243-47db-a578-c9098e113689" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload&#93;&#93;></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="ec188acb-007d-415b-9322-9847b7af5582" size="3">
+						<logger level="INFO" doc:name="AggregatePayload" doc:id="420c14b8-628f-4fab-a074-a7b81b0a2dd2" message="#[payload&#93;"/>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="LoggerBeforeSetPayload" doc:id="b7fcefa1-2606-4bd9-b1e3-28b026feec8b" message="#[payload&#93;"/>
+				<set-payload value='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;{&#10;	"message":"processed"&#10;}&#93;' doc:name="Set Payload" doc:id="93b288be-3e10-4bff-8201-d97153180c5d" />
+				<logger level="INFO" doc:name="LoggerAfterSetPayload" doc:id="dbbfe604-478b-44c6-8404-2f79570b3966" message="#[payload&#93;"/>
+			</batch:on-complete>
+		</batch:job>
+		<ee:transform doc:name="Transform Message" doc:id="7cb3d55a-7bed-4934-bd00-3456a6c18b30" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload&#93;&#93;></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Flow End" doc:id="95b45e7c-afd6-4269-8466-73a19ebd423d" message='#["Flow End " ++ flow.name as String&#93;'/>
+	</flow> [STUDIO] -->
+	<sub-flow name="variableAccessFromMainFlowToPrivateFlowSub_Flow" doc:id="a0cec986-394e-41c1-afa8-6fb43a50c01d" >
+		<logger level="INFO" doc:name="Logger" doc:id="9d18ed84-6621-49f4-a1b6-28bd71c95544" message="#[vars.number]" />
+		<set-variable value="#[vars.number +1]" doc:name="Set Variable" doc:id="d43b1c48-3bdd-43b0-a072-256678ff3ce0" variableName="number" />
+		<set-variable value="3" doc:name="Set Variable1" doc:id="51b04c54-f627-4fde-a1bf-18151d6df57f" variableName="number3" />
+	</sub-flow>
+	<flow name="Request" doc:id="500273af-5900-4ee1-bde1-a59ae4bf3e58" >
+		<http:listener doc:name="Request" doc:id="4cbc8997-a5ce-4ee6-9468-786f18fbb31d" config-ref="HTTP_Listener_config" path="/request/hi"/>
+		<set-payload value="#[vars.number]" doc:name="Set Payload" doc:id="f4a4c759-261d-43f5-867d-ea4452876fd3" />
+		<logger level="INFO" doc:name="Logger" doc:id="e54137c5-4573-489f-b0b5-eb460012ec82" message="#[payload]"/>
+	</flow>
+	<flow name="validateString" doc:id="3b429195-688e-4ed1-a46d-ecd66f5deca7" >
+		<http:listener doc:name="validateString /validateString" doc:id="60197045-3d98-4a4a-baa1-543fe39b5fdb" config-ref="HTTP_Listener_config" path="/validateString"/>
+		<set-payload value='#["String Start"]' doc:name="Set Payload" doc:id="3fba3f3e-caf9-4e49-9d1a-d0bbadac5a98" />
+		<validation:is-not-blank-string doc:name="Is not blank string" doc:id="e1157447-e07c-46d2-8870-00b5fefbf95d" />
+		<validation:is-blank-string doc:name="Is blank string" doc:id="7d14d421-7c15-42d5-a1b0-04b51f255e7a" value="#[payload]"/>
+		<set-payload value='#["End "]' doc:name="Set Payload" doc:id="687165a7-580a-4b4e-a8bc-5e35c34a0639" />
+	</flow>
 </mule>
