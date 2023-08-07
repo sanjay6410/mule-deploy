@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>0770f110-11e0-4222-bd1b-cac95829010a</groupId>
+	<groupId>50b8e791-efa1-4e4b-8fdf-9e80af30ecf9</groupId>
 	<artifactId>flowstest</artifactId>
 	<version>1.0.1</version>
 	<packaging>mule-application</packaging>
 
 	<name>flowstest</name>
 
-	<description/>
+	<description />
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
 		<app.runtime>4.4.0-20230320</app.runtime>
 		<mule.maven.plugin.version>3.8.6</mule.maven.plugin.version>
-		<tags/>
+		<tags />
 		<categories>[]</categories>
 		<fields>[]</fields>
 	</properties>
@@ -31,6 +33,15 @@
 			<plugin>
 				<groupId>org.mule.tools.maven</groupId>
 				<artifactId>mule-maven-plugin</artifactId>
+				<version>3.8.6</version>
+				<extensions>true</extensions>
+				<configuration>
+					<classifier>mule-application</classifier>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.mule.tools.maven</groupId>
+				<artifactId>mule-maven-plugin</artifactId>
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
@@ -40,10 +51,10 @@
 						<environment>Sandbox</environment>
 						<target>Cloudhub-US-East-2</target>
 						<muleVersion>4.4.0</muleVersion>
-						<username>Sanjay6410</username>
+						<username>Sanju6410</username>
 						<password>Sanju6410@</password>
 						<applicationName>san</applicationName>
-						<businessGroupId>0770f110-11e0-4222-bd1b-cac95829010a</businessGroupId>
+						<businessGroupId>50b8e791-efa1-4e4b-8fdf-9e80af30ecf9</businessGroupId>
 						<replicas>1</replicas>
 						<vCores>0.1</vCores>
 					</cloudhub2Deployment>
@@ -138,5 +149,14 @@
 			<url>https://repository.mulesoft.org/nexus/content/repositories/releases</url>
 		</pluginRepository>
 	</pluginRepositories>
+
+	<distributionManagement>
+		<repository>
+			<id>anypoint-exchange-v3</id>
+			<name>Corporate Repository</name>
+			<url>https://maven.anypoint.mulesoft.com/api/v3/organizations/50b8e791-efa1-4e4b-8fdf-9e80af30ecf9/maven</url>
+			<layout>default</layout>
+		</repository>
+	</distributionManagement>
 
 </project>

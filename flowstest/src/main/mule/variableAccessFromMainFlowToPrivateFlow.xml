@@ -80,4 +80,18 @@ payload&#93;&#93;></ee:set-payload>
 		<validation:is-blank-string doc:name="Is blank string" doc:id="7d14d421-7c15-42d5-a1b0-04b51f255e7a" value="#[payload]"/>
 		<set-payload value='#["End "]' doc:name="Set Payload" doc:id="687165a7-580a-4b4e-a8bc-5e35c34a0639" />
 	</flow>
+	<flow name="variableAccessFromMainFlowToPrivateFlowFlow1" doc:id="a30cc5f3-3681-4cac-b3bc-bccef21c6fcd" >
+		<http:listener doc:name="Listener /test-re-deploy" doc:id="dc2d0478-2a14-4dc2-8c26-2b0b3c719fd7" config-ref="HTTP_Listener_config" path=" /test-re-deploy" allowedMethods="GET"/>
+		<ee:transform doc:name="PrepareResponse" doc:id="c845b464-9f8b-415a-8fda-3e6071478561" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":"REDEPLY-SUCCESS",
+	"status":200
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
 </mule>
