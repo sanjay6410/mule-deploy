@@ -6,7 +6,7 @@
 
 	<groupId>50b8e791-efa1-4e4b-8fdf-9e80af30ecf9</groupId>
 	<artifactId>flowstest</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<packaging>mule-application</packaging>
 
 	<name>flowstest</name>
