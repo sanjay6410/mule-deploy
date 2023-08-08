@@ -23,6 +23,17 @@ http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/
 		<logger level="INFO" doc:name="Logger for private" doc:id="807ae2af-106b-4219-bb64-08cbf7600fc6" message="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.flowName]"/>
 		<set-variable value='#[vars.flowName ++ " PRIVATE FLOW " as String]' doc:name="Set Variable flowName" doc:id="eb3eba46-9158-441f-ba71-1b892985c9f4" variableName="flowName"/>
 	</flow>
+	<flow name="flowstestFlow3" doc:id="365206f8-67f1-4508-8459-feb871d22ba7" >
+		<ee:transform doc:name="Transform Message" doc:id="08205a1d-7d47-485f-9165-4192fabb4ad9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
 	<sub-flow name="flowstestSub_Flow" doc:id="2741de69-1944-4b16-9d43-1ab84b91f203" >
 		<logger level="INFO" doc:name="Logger for subflow" doc:id="54306bbd-8aab-48f9-95e2-746cccd81789" message='#[%dw 2.0&#10;output application/json&#10;---&#10;vars.flowName]'/>
 		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.flowName]" doc:name="Set Payload" doc:id="063f19ae-289c-4b67-a80e-02af5ac93ee4" />
